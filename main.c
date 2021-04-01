@@ -2,11 +2,12 @@
 #include "util/so_stdio.h"
 
 int main() {
-    printf("blagh\n");
+    printf("----------------\n");
 
-    SO_FILE *stream = NULL;
-    int test = so_fileno(stream);
-    printf("%d\n", test);
+    SO_FILE var;
+    var.mods[1] = 3;
+    printf("%d\n", var.mods[1]);
+
 
     return 0;
 }

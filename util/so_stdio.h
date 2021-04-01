@@ -30,9 +30,31 @@
 
 #define SO_EOF (-1)
 
-struct _so_file;
 
+#define MOD_READ 0
+#define MOD_WRITE 1
+#define MOD_APPEND 2
+#define MOD_CREATE 3
+#define MOD_TRUNCATE 4
+
+#define BUFFER_SIZE 4096
+#define PATH_SIZE 100
+
+
+// HERE
+struct _so_file
+{
+    int fd;
+    int errorNo;
+    char * path;
+    char * buffer;
+    long fileCursor;
+    int bufferCursor;
+    int mods[5];
+};
 typedef struct _so_file SO_FILE;
+
+
 
 FUNC_DECL_PREFIX SO_FILE *so_fopen(const char *pathname, const char *mode);
 FUNC_DECL_PREFIX int so_fclose(SO_FILE *stream);
