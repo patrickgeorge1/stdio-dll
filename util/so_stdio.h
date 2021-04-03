@@ -23,6 +23,8 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
 
 #define SEEK_SET	0	/* Seek from beginning of file.  */
 #define SEEK_CUR	1	/* Seek from current position.  */
@@ -88,4 +90,5 @@ FUNC_DECL_PREFIX int so_ferror(SO_FILE *stream);
 FUNC_DECL_PREFIX SO_FILE *so_popen(const char *command, const char *type);
 FUNC_DECL_PREFIX int so_pclose(SO_FILE *stream);
 
+char *copyString(const char *string);
 #endif /* SO_STDIO_H */
