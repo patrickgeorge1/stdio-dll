@@ -62,8 +62,9 @@ SO_FILE *so_fopen(const char *pathname, const char *mode) {
         return NULL;
     }
     file->errorNo = 0;
-    file->fileCursor = 0;
-    file->bufferCursor = 0;
+    file->fileCursor = lseek(file->fd, 0, SEEK_CUR);
+    file->bufferCursor = getInBufferPosition(file);
+    file->bufferOffset = getBufferOffset(file);
     file->path = copyString(pathname);
     if (file->path == NULL)
     {
@@ -121,13 +122,35 @@ int so_pclose(SO_FILE *stream)
 
 int so_fflush(SO_FILE *stream)
 {
-    // TODO
+    if (stream == NULL) return SO_EOF;
+
+    int bytesWritten = write(stream->fd, stream->buffer, BUFFER_SIZE);
+    if (bytesWritten == -1)
+    {
+        stream->errorNo = 1;
+        return SO_EOF;
+    }
     return 0;
 }
 
 int so_fclose(SO_FILE *stream)
 {
-    // TODO
+    int flushed = so_fflush(stream);
+    if (flushed == SO_EOF) {
+        free(stream->buffer);
+        free(stream->path);
+        free(stream);
+        return SO_EOF;
+    }
+
+    int closeStatus = close(stream->fd);
+    free(stream->buffer);
+    free(stream->path);
+    free(stream);
+    if (closeStatus < 0)
+    {
+        return SO_EOF;
+    }
     return 0;
 }
 
@@ -152,4 +175,12 @@ char *copyString(const char *string)
 	if (copy == NULL) return copy;
     strcpy(copy, string);
 	return copy;
+}
+
+int getBufferOffset (SO_FILE * file) {
+    return BUFFER_SIZE * (file->fileCursor / BUFFER_SIZE);
+}
+
+int getInBufferPosition(SO_FILE * file) {
+    return file->fileCursor % BUFFER_SIZE;
 }

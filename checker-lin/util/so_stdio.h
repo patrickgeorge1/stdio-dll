@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #define SEEK_SET	0	/* Seek from beginning of file.  */
@@ -51,6 +52,7 @@ struct _so_file
     char * path;
     char * buffer;
     long fileCursor;
+    long bufferOffset;
     int bufferCursor;
     int mods[5];
 };
@@ -91,4 +93,6 @@ FUNC_DECL_PREFIX SO_FILE *so_popen(const char *command, const char *type);
 FUNC_DECL_PREFIX int so_pclose(SO_FILE *stream);
 
 char *copyString(const char *string);
+int getBufferOffset (SO_FILE * file);
+int getInBufferPosition(SO_FILE * file);
 #endif /* SO_STDIO_H */
