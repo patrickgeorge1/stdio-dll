@@ -1,15 +1,26 @@
 #include <stdio.h>
 #include <string.h>
 #include "util/so_stdio.h"
+#include "main.h"
 
 int main() {
-        printf("--------------\n");
+    // FILE * file = fopen("fisierO.in", "w");
+    // for (int i = 0; i < buf_len; i++) {
+	// 	int c = fputc((int)buf[i], file);
+	// }
+    // // so_fputc(65, file);
+    // // so_fputc(66, file);
 
-    SO_FILE * stream = so_fopen("fisier.in", "r");
-    if (stream == NULL) printf("IS NULL\n");
-    int test = so_fgetc(stream);
-    printf("%d\n", test);
-    so_fclose(stream);
+    // fclose(file);
+
+    SO_FILE * file = so_fopen("fisierP.in", "w");
+    for (int i = 0; i < buf_len; i++) {
+		int c = so_fputc((int)(buf[i]), file);
+	}
+    // so_fputc(65, file);
+    // so_fputc(66, file);
+
+    so_fclose(file);
 
     return 0;
 }

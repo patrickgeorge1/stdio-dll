@@ -105,8 +105,25 @@ int so_fgetc(SO_FILE *stream) {
 
 int so_fputc(int c, SO_FILE *stream) {
     // TODO
+    
     stream->writtenIntoFile = 1;
-    return 0;
+    long correspondingBufferOffset = getBufferOffset(stream);
+    // printf("%d\n", correspondingBufferOffset != stream->bufferOffset);
+    if (correspondingBufferOffset != stream->bufferOffset)
+    {
+        if (so_fflush(stream) == SO_EOF) {
+            stream->errorNo = 1;
+            return SO_EOF;
+        }
+        stream->bufferOffset = getBufferOffset(stream);
+        stream->bufferCursor = getInBufferPosition(stream);
+    }
+    stream->bytesWritten += 1;
+    stream->buffer[stream->bufferCursor] = c;
+    stream->bufferCursor += 1;
+    stream->fileCursor += 1;
+
+    return c;
 }
 
 size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream) {
@@ -143,14 +160,15 @@ int so_fflush(SO_FILE *stream)
     if (stream == NULL) return SO_EOF;
     if (stream->writtenIntoFile == 1)
     {
-        int bytesWritten = write(stream->fd, stream->buffer, BUFFER_SIZE);
+        int bytesWritten = write(stream->fd, stream->buffer, stream->bytesWritten);
+        stream->writtenIntoFile = 0;
+        stream->bytesWritten = 0;
         if (bytesWritten == -1)
         {
             stream->errorNo = 1;
             return SO_EOF;
         }
     }
-    stream->writtenIntoFile = 0;
     return 0;
 }
 

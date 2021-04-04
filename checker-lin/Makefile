@@ -1,4 +1,4 @@
-CFLAGS = -Wall -fPIC
+CFLAGS = -Wextra -g -fPIC
 CC = gcc
 
 build:	libso_stdio.so
