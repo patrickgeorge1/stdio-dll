@@ -54,6 +54,8 @@ struct _so_file
     long fileCursor;
     long bufferOffset;
     int bufferCursor;
+    int writtenIntoFile;
+    int readFromFile;
     int mods[5];
 };
 typedef struct _so_file SO_FILE;

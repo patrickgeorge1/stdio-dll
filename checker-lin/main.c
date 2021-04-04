@@ -1,13 +1,15 @@
 #include <stdio.h>
+#include <string.h>
 #include "util/so_stdio.h"
 
 int main() {
-    printf("----------------\n");
+        printf("--------------\n");
 
-    SO_FILE var;
-    var.mods[1] = 3;
-    printf("%d\n", var.mods[1]);
-
+    SO_FILE * stream = so_fopen("fisier.in", "r");
+    if (stream == NULL) printf("IS NULL\n");
+    int test = so_fgetc(stream);
+    printf("%d\n", test);
+    so_fclose(stream);
 
     return 0;
 }

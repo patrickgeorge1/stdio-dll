@@ -12,39 +12,38 @@ SO_FILE *so_fopen(const char *pathname, const char *mode) {
         return NULL;
     }
 
-
-    if (strcmp(mode, "r"))
+    if (strcmp(mode, "r") == 0)
     {
         file->mods[MOD_READ] = 1;
         file->fd = open(pathname, O_RDONLY, 0644);
     }
     else
-    if (strcmp(mode, "r+"))
+    if (strcmp(mode, "r+") == 0)
     {
         file->mods[MOD_READ] = 1;
         file->mods[MOD_WRITE] = 1;
         file->fd = open(pathname, O_RDWR, 0644);
     } else
-    if (strcmp(mode, "w"))
+    if (strcmp(mode, "w") == 0)
     {
         file->mods[MOD_WRITE] = 1;
         file->mods[MOD_CREATE] = 1;
         file->mods[MOD_TRUNCATE] = 1;
         file->fd = open(pathname, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     } else
-    if (strcmp(mode, "w+")) {
+    if (strcmp(mode, "w+") == 0) {
         file->mods[MOD_READ] = 1;
         file->mods[MOD_WRITE] = 1;
         file->mods[MOD_CREATE] = 1;
         file->mods[MOD_TRUNCATE] = 1;
         file->fd = open(pathname, O_RDWR | O_CREAT | O_TRUNC, 0644);
     } else
-    if (strcmp(mode, "a")) {
+    if (strcmp(mode, "a") == 0) {
         file->mods[MOD_APPEND] = 1;
         file->mods[MOD_CREATE] = 1;
         file->fd = open(pathname, O_WRONLY | O_CREAT | O_APPEND, 0644);
     } else
-    if (strcmp(mode, "a+"))
+    if (strcmp(mode, "a+") == 0)
     {
         file->mods[MOD_APPEND] = 1;
         file->mods[MOD_READ] = 1;
@@ -71,6 +70,8 @@ SO_FILE *so_fopen(const char *pathname, const char *mode) {
         free(file);
         return NULL;
     }
+
+    // init buffer
     file->buffer = (char *) calloc(BUFFER_SIZE, sizeof(char));
     if (file->buffer == NULL)
     {
@@ -78,17 +79,33 @@ SO_FILE *so_fopen(const char *pathname, const char *mode) {
         free(file);
         return NULL;
     }
-
     return file;
 }
 
 int so_fgetc(SO_FILE *stream) {
-    // TODO
-    return 0;
+    long correspondingBufferOffset = getBufferOffset(stream);
+    if (correspondingBufferOffset != stream->bufferOffset || stream->readFromFile == 0)
+    {
+        // invalidate buffer, maybe fflush
+        int byteRead = read(stream->fd, stream->buffer, BUFFER_SIZE);
+        if (byteRead < 0)
+        {
+            stream->errorNo = 1;
+            return SO_EOF;
+        }
+        stream->bufferOffset = getBufferOffset(stream);
+        stream->bufferCursor = getInBufferPosition(stream);
+        stream->readFromFile = 1;
+    }
+    int charFromFile = (unsigned char) stream->buffer[stream->bufferCursor];
+    stream->fileCursor += 1;
+    stream->bufferCursor += 1;
+    return charFromFile;
 }
 
 int so_fputc(int c, SO_FILE *stream) {
     // TODO
+    stream->writtenIntoFile = 1;
     return 0;
 }
 
@@ -99,6 +116,7 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream) {
 
 size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream) {
     // TODO
+    stream->writtenIntoFile = 1;
     return 0;
 }
 
@@ -123,13 +141,16 @@ int so_pclose(SO_FILE *stream)
 int so_fflush(SO_FILE *stream)
 {
     if (stream == NULL) return SO_EOF;
-
-    int bytesWritten = write(stream->fd, stream->buffer, BUFFER_SIZE);
-    if (bytesWritten == -1)
+    if (stream->writtenIntoFile == 1)
     {
-        stream->errorNo = 1;
-        return SO_EOF;
+        int bytesWritten = write(stream->fd, stream->buffer, BUFFER_SIZE);
+        if (bytesWritten == -1)
+        {
+            stream->errorNo = 1;
+            return SO_EOF;
+        }
     }
+    stream->writtenIntoFile = 0;
     return 0;
 }
 
@@ -155,18 +176,16 @@ int so_fclose(SO_FILE *stream)
 }
 
 long so_ftell(SO_FILE *stream) {
-    // TODO
-    return 0;
+    if (stream == NULL) return -1;
+    return stream->fileCursor;
 }
 
 int so_feof(SO_FILE *stream) {
-    // TODO
-    return 0;
+    return stream->errorNo;
 }
 
 int so_ferror(SO_FILE *stream) {
-    // TODO
-    return 0;
+    return stream->errorNo;
 }
 
 char *copyString(const char *string)
